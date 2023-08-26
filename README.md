@@ -4,3 +4,4 @@ Group 3 Members:
 * CARLA
 * ALEX R
 * ALEX B 
+* Jack

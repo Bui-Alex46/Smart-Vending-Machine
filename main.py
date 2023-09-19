@@ -17,9 +17,9 @@ def create_main_window():
 
     return sg.Window('Main Application', layout_home)
 
-df_itemTable = pd.read_csv("project\\database\\ItemTable.csv", index_col=0, header=0)
-df_vendingMachine1 = pd.read_csv("project\\database\\VendingMachine1.csv", index_col=0, header=0)
-df_purchaseHistory = pd.read_csv("project\\database\\PurchaseHistory.csv")
+df_itemTable = pd.read_csv("SMART-VENDING-MACHINE\\database\\ItemTable.csv", index_col=0, header=0)
+df_vendingMachine1 = pd.read_csv("SMART-VENDING-MACHINE\\database\\VendingMachine1.csv", index_col=0, header=0)
+df_purchaseHistory = pd.read_csv("SMART-VENDING-MACHINE\\database\\PurchaseHistory.csv")
 
 windows = {
         'Main' : create_main_window(), 

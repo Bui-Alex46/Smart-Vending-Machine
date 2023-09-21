@@ -12,3 +12,17 @@ def create_vending_machine_window(itemTable, vendingmachine1): # : pd.DataFrame
     ]
 
     return sg.Window('Vending Machine', layout_vending_machine, resizable=True, finalize=True)
+
+#another option is to create a new window?
+
+def create_payment_window(item_name, purchase_cost : float):
+    sg.theme('LightGreen')
+    
+    layout_purchase = [
+        #[sg.T('Buying Item')],
+        [sg.T(item_name)],
+        [sg.T('${:.2f}'.format(purchase_cost), key='-remaining-cost-')],
+        [sg.B("$5.00"), sg.B("$1.00"), sg.B("$0.50"), sg.B("$0.25")]
+    ]
+    
+    return sg.Window('Buying Item', layout_purchase, resizable=True, finalize=True)

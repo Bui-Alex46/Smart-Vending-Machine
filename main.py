@@ -1,7 +1,8 @@
 import PySimpleGUI as sg
 import pandas as pd
+from datetime import datetime
 
-from vending_machine import create_vending_machine_window, create_payment_window
+from vending_machine import create_vending_machine_window, create_payment_window, end_transaction_window
 from restock import create_restock_window
 from management import create_management_window
 
@@ -22,66 +23,88 @@ df_vendingMachine1 = pd.read_csv("database\\VendingMachine1.csv", index_col=0, h
 df_purchaseHistory = pd.read_csv("database\\PurchaseHistory.csv")
 
 windows = {
-        'Main' : create_main_window(), 
-    }
-    
-windows_state = {
-    'Main' : True,
-    'Vending Machine' : False,
-    'Buying Item': False,
-    'Restock' : False,
-    'Manage' : False,
+    'Main' : create_main_window(), 
 }
-
-def hide_main_page(event):
-    windows_state[event] = True
-    windows_state['Main'] = False
-    windows['Main'].hide()
-    #windows[event].un_hide()
     
-remaining_balance = 0.00
+# need a change into previous window function
+def change_to_previous_window(previous_window, current_window):
+    windows[current_window].close()
+    del windows[current_window]
+    windows[previous_window].un_hide()
+    #for now no way to change the current, previous window because not ordered Dict
+    #current process looks like this:
+    # change_to_previous_window(previous_window, active_window)
+    # previous_window, active_window = None, 'Main'
+
+def complete_purchase(selected_item, remaining_balance):
+    # change Inventory database
+    df_vendingMachine1.at[selected_item['item ID'], 'number in stock'] -= 1
+    df_vendingMachine1.to_csv("database\\VendingMachine1.csv", index_label='Item slot')
+    # add purchase history row
+    df_purchaseHistory.loc[len(df_purchaseHistory.index)] = [len(df_purchaseHistory.index), selected_item['item ID'], pd.to_datetime(datetime.now()), 1]
+    df_purchaseHistory.to_csv("database\\PurchaseHistory.csv", index=False)
+    # also need checking for if an item has no items left
+    # window creation could maybe happen outside this function
+    return end_transaction_window(completed=True, change=remaining_balance)
 
 def main():
+    remaining_balance : float = 0.00
+    previous_window : str = None
+    active_window : str = 'Main'
+    
     while True:             # Event Loop
-        for name, state in windows_state.items():
-            if state:
-                event, values = windows[name].read()
-                break
-        if event in (None, 'Exit'): # and windows_state['Main']:
+        event, values = windows[active_window].read()
+        if event in (None, 'Exit') and active_window == 'Main': # maybe the x in top right shuts it down and there is a way to navigate between all pages with buttons
             break
-        #for win in windows:
-        #    if event in (None, 'Exit') and windows_state['Main'] == False:
-        #        windows[win].close()
-        if event == 'Vending Machine' and not windows_state['Vending Machine']: # might be redundant because of hiding
+        if event == 'Vending Machine':
             windows['Vending Machine'] = create_vending_machine_window(df_itemTable, df_vendingMachine1)
-            hide_main_page(event)
-        if event == 'Restock' and not windows_state['Restock']:
+            previous_window, active_window = 'Main', event
+            windows['Main'].hide()
+        if event == 'Restock':
             windows['Restock'] = create_restock_window()
-            hide_main_page(event)
-        if event == 'Manage' and not windows_state['Manage']:
+            previous_window, active_window = 'Main', event
+            windows['Main'].hide()
+        if event == 'Manage':
             windows['Manage'] = create_management_window()
-            hide_main_page(event)
+            previous_window, active_window = 'Main', event
+            windows['Main'].hide()
         try:
             if int(event) > 0 and int(event) < 41:
-                remaining_balance = df_itemTable.at[event, 'item cost']
-                windows['Buying Item'] = create_payment_window(df_itemTable.at[event, 'item name'], remaining_balance)
+                selected_item = {
+                    'item ID'   : event,
+                    'item name' : df_itemTable.loc[event]['item name'],
+                    'item cost' : df_itemTable.loc[event]['item cost']
+                }
+                remaining_balance = selected_item['item cost']
+                windows['Buying Item'] = create_payment_window(selected_item['item name'], remaining_balance)
                 windows['Vending Machine'].hide()
-                windows_state['Vending Machine'] = False
-                windows_state['Buying Item'] = True
+                previous_window, active_window = 'Vending Machine', 'Buying Item'
         except:
             pass
-        if event in ("$5.00", "$1.00", "$0.50", "$0.25"):
-            remaining_balance = remaining_balance-float(event[1:])
+        if event in ("$5.00", "$1.00", "$0.50", "$0.25"): 
+            # need confirmation window, maybe a initial cost and balance so far, also change button to get back money
+            remaining_balance -= float(event[1:])
             windows['Buying Item']['-remaining-cost-'].update('${:.2f}'.format(remaining_balance))
             if remaining_balance <= 0:
-                if remaining_balance == 0:
-                    print('Bought')
-                else:
-                    print('Bought here is your change:', '${:.2f}'.format(-remaining_balance))
+                windows['End Transaction'] = complete_purchase(selected_item, remaining_balance)
+                active_window = 'End Transaction' # don't want to go back to buying item so vending machine is still previous window
+        if event == 'Change':
+            change = selected_item['item cost'] - remaining_balance
+            if change == 0.0: # if no change was entered and they just don't want to buy
+                event = 'Close'
+                print('Closed because no change')
+            else: # close Buying Item and open change window
                 windows['Buying Item'].close()
-                windows['Vending Machine'].un_hide()
-                windows_state['Buying Item'] = False
-                windows_state['Vending Machine'] = True
+                windows['End Transaction'] = end_transaction_window(completed=False, change=change)
+                active_window = 'End Transaction' # don't want to go back to buying item so vending machine is still previous window
+        if event == 'Close':
+            change_to_previous_window(previous_window, active_window)
+            active_window = previous_window
+            if previous_window == 'Main': # if on (Vending Machine or Restock or Manage) needs to be changed to a close button
+                previous_window = None
+            if previous_window == 'Vending Machine':
+                previous_window = 'Main'
+            print(active_window)
 
     windows['Main'].close()
 

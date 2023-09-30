@@ -25,7 +25,7 @@ df_purchaseHistory = pd.read_csv("database\\PurchaseHistory.csv")
 windows = {
     'Main' : create_main_window(), 
 }
-    
+
 # need a change into previous window function
 def change_to_previous_window(previous_window, current_window):
     windows[current_window].close()
@@ -86,13 +86,14 @@ def main():
             remaining_balance -= float(event[1:])
             windows['Buying Item']['-remaining-cost-'].update('${:.2f}'.format(remaining_balance))
             if remaining_balance <= 0:
-                windows['End Transaction'] = complete_purchase(selected_item, remaining_balance)
+                windows['End Transaction'] = complete_purchase(selected_item, -remaining_balance)
+                windows['Buying Item'].close()
+                del windows['Buying Item']
                 active_window = 'End Transaction' # don't want to go back to buying item so vending machine is still previous window
         if event == 'Change':
             change = selected_item['item cost'] - remaining_balance
             if change == 0.0: # if no change was entered and they just don't want to buy
                 event = 'Close'
-                print('Closed because no change')
             else: # close Buying Item and open change window
                 windows['Buying Item'].close()
                 windows['End Transaction'] = end_transaction_window(completed=False, change=change)

@@ -3,8 +3,9 @@ import PySimpleGUI as sg
 def create_restock_window():
     sg.theme('LightGreen')
 
-    layout_restock = [ # restock page which also should probably be made into another window
-        [sg.T("RESTOCKING")],
+    layout_restock = [
+        [sg.T('RESTOCKING')],
+        [sg.B('Close')]
     ]
 
-    return sg.Window('Restock', layout_restock, resizable=True, finalize=True)
+    return sg.Window('Restock', layout_restock, resizable=True) #, finalize=True)

@@ -2,8 +2,10 @@
 
 # [Here we can place the other files like main, etc]
 
-# Idea I was thinking of each restocker to have a phone number to get access to the instructions
 
-class Restocker: # In order to get the instructions, the restocker, I think should have some sort of account to get 
-    def __init__(self) : # constructor
+
+class Restocker: # In order to get the instructions, the restocker, I think should have some sort of account
+    def __init__(self, username, password ) : # constructor
         pass
+
+

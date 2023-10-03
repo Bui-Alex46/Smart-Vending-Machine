@@ -3,9 +3,8 @@
 # [Here we can place the other files like main, etc]
 
 
-
 class Restocker: # In order to get the instructions, the restocker, I think should have some sort of account
-    def __init__(self, username, password ) : # constructor
-        pass
+    def __init__(self, email ) : # constructor
+        self.email = email
 
 

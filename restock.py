@@ -2,7 +2,7 @@ import PySimpleGUI as sg
 
 def create_restock_window():
     sg.theme('LightGreen')
-    event = windows[active_window].read()
+   
 
 
     layout_restock = [

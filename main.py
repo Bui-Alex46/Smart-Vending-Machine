@@ -68,6 +68,8 @@ def main():
             windows['Manage'] = create_management_window()
             previous_window, active_window = 'Main', event
             windows['Main'].hide()
+        if event == sg.WIN_CLOSED:
+            break
         try:
             if int(event) > 0 and int(event) < 41:
                 selected_item = {

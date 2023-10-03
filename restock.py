@@ -10,6 +10,6 @@ def create_restock_window():
         [sg.B('Close')]
     ]
     if event == sg.WIN_CLOSED:
-        break
+        pass
 
     return sg.Window('Restock', layout_restock, resizable=True) #, finalize=True)

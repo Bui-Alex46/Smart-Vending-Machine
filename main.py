@@ -61,6 +61,9 @@ def main():
             previous_window, active_window = 'Main', event
             windows['Main'].hide()
         if event == 'Restock':
+            if df_vendingMachine1[["number in stock"]] == 15: # This will check if the number in stock is full
+                print("The vending machine is full! No need for restock :)") # IF the stock is full; we don't need to restock 
+
             windows['Restock'] = create_restock_window()
             previous_window, active_window = 'Main', event
             windows['Main'].hide()

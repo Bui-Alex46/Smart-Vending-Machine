@@ -7,7 +7,7 @@ def create_vending_machine_window(itemTable : DataFrame, vendingmachine1 : DataF
     layout_vending_machine = [
         # vending machine page where items can be purchased, could be made into separate window which might be smart
         [sg.T('Vending Machine')],
-        *[[sg.B(f'{itemTable.at[vendingmachine1.at[y + 5*(x-1), "Item ID"], "item name"]}', pad=(0,0), key=(y + 5*(x-1))) for y in range(1, 6)] for x in range(1, 9)],
+        *[[sg.B(f'{itemTable.at[vendingmachine1.at[y + 5*(x-1), "item ID"], "item name"]}', pad=(0,0), key=(y + 5*(x-1))) for y in range(1, 6)] for x in range(1, 9)],
         # how to make size of button change with screen
         [sg.B('Close')],
     ]
@@ -24,7 +24,7 @@ def create_payment_window(item_name : str, purchase_cost : float):
         [sg.T(item_name, key='-item-name-')],
         [sg.T('${:.2f}'.format(purchase_cost), key='-remaining-cost-')],
         [sg.B('$5.00'), sg.B('$1.00'), sg.B('$0.50'), sg.B('$0.25')],
-        [sg.B('Change', tooltip='Click this to get change back or stop transaction')], #change button to get back money spent so far
+        [sg.B('Change or Close', tooltip='Click this to get change back or stop transaction')], #change button to get back money spent so far
     ]
     
     return sg.Window('Buying Item', layout_purchase, finalize=True) # resizable=True

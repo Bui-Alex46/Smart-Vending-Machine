@@ -1,4 +1,5 @@
 import PySimpleGUI as sg
+
 from restocker_instructs import Restocker
 from management_tool import send_instructions, send_email
 

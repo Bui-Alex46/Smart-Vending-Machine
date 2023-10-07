@@ -1,10 +1,13 @@
 import PySimpleGUI as sg
+from restocker_instructs import Restocker
+from management_tool import send_instructions, send_email
 
 def create_restock_window():
     sg.theme('LightGreen')
    
 
     layout_restock = [
+
         [sg.T('RESTOCKING')],
         [sg.B('Close')]
     ]

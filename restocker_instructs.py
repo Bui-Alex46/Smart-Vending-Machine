@@ -3,6 +3,7 @@
 # [Here we can place the other files like main, etc]
 #import send_instructions from management_tool
 
+
 class Restocker: # In order to get the instructions, the restocker, I think should have some sort of account
     def __init__(self, email ) : # constructor
         self.email = input("Enter in a work email: ")
@@ -11,6 +12,7 @@ class Restocker: # In order to get the instructions, the restocker, I think shou
 
 
         restocker1 = Restocker()
+         
         
 
 

@@ -1,24 +1,24 @@
 import PySimpleGUI as sg
 from main import main, create_vending_machine_window
 
-layout = [
-                [sg.Text("Select a theme: ",size=(15,1)),
-                sg.Combo(sg.theme_list(),key="t",default_value="BlueMono",size=(10,1))],
-                [sg.Text("Please enter in a Vending Machine ID: ",size=(15,1)),
-                 
-                sg.InputText(key="n",size=(10,1))],
-                [sg.Checkbox("Capitalize",key="c",size=(15,1))],
-                [sg.Text("Enter the Vending ID: ",size=(15,1))]
+sg.theme("BlueMono") #changing the color
 
-             ]
-window = sg.Window("Controls",layout)
+vending_machine_ids = ['1', '2', '3'] # just some example stuff we can use a .csv table to make things easier
+
+layout = [
+               
+                [sg.text("Welcome to the Smart Vending Machine's Management System!")],
+                [sg.text("Please enter in a Vending Machine ID: "), sg.InputText()],
+
+         ]
+window = sg.Window("Test",layout).Finalize()
 
 while True:
         event,values = window.read()
-        if event == sg.WINDOW_CLOSED:
+        if event == sg.WINDOW_CLOSED: # close crash error
            break
-        if event == "Show":
-             pass
-        if event == "Reset":
-            pass
+        if event == '-INPUT-': # When the user enters in a vending machine ID
+             if values['INPUT'] not in vending_machine_ids:
+                  pass # check to see if the vending machine id is valid
+            # IF Yes, then we will go to look into the inventory of a particulatr vending machine
 window.close()

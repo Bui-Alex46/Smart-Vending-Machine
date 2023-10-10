@@ -7,11 +7,11 @@ vending_machine_ids = ['1', '2', '3'] # just some example stuff we can use a .cs
 
 layout = [
                
-                [sg.text("Welcome to the Smart Vending Machine's Management System!")],
-                [sg.text("Please enter in a Vending Machine ID: "), sg.InputText()],
+                [sg.Text("Welcome to the Smart Vending Machine's Management System!")],
+                [sg.Text("Please enter in a Vending Machine ID: "), sg.InputText()]
 
          ]
-window = sg.Window("Test",layout).Finalize()
+window = sg.Window("Management Tool", layout)
 
 while True:
         event,values = window.read()

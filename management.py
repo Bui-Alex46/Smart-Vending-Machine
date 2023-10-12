@@ -1,24 +1,41 @@
 import PySimpleGUI as sg
-from main import main, create_vending_machine_window
+import pandas as pd
+from vending_machine
+from management_tool import  # gets the functions/functionality from the management tool
 
-sg.theme("BlueMono") #changing the color
 
-vending_machine_ids = ['1', '2', '3'] # just some example stuff we can use a .csv table to make things easier
 
-layout = [
-               
-                [sg.Text("Welcome to the Smart Vending Machine's Management System!")],
-                [sg.Text("Please enter in a Vending Machine ID: "), sg.InputText()]
+def management_layout():
+   sg.theme("DarkBlue3")
 
-         ]
-window = sg.Window("Management Tool", layout)
+   vending_machine_ids = [1, 2, 3]
+   
+   layout = [
+            [sg.Text("Please Enter Vending Machine ID: ")],      
+            [sg.Input('', enable_events= True, key = '-INPUT-')],
+            [sg.Button("Enter", key="-Enter-"), sg.Button("Exit")]]
+   
+   window = sg.Window("Management Tool", layout)
 
-while True:
-        event,values = window.read()
-        if event == sg.WINDOW_CLOSED: # close crash error
-           break
-        if event == '-INPUT-': # When the user enters in a vending machine ID
-             if values['INPUT'] not in vending_machine_ids:
-                  pass # check to see if the vending machine id is valid
-            # IF Yes, then we will go to look into the inventory of a particulatr vending machine
-window.close()
+   while True:
+      
+      event, values = window.read()
+
+      print(event, values)
+
+      if event == sg.WIN_CLOSED or event == "Exit":
+            break
+      else:
+          if event == "Enter":
+              if values ["-INPUT-"] == values in vending_machine_ids:
+                  pass
+              else:
+                  sg.popup("Invalid Vending Machine ID. . . ")    
+   window.close()
+
+
+
+
+
+
+management_layout()

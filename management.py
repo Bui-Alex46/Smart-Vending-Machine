@@ -1,41 +1,36 @@
 import PySimpleGUI as sg
 import pandas as pd
-#from vending_machine
-from management_tool import  # gets the functions/functionality from the management tool
 
-# this is the management window
+# reading .csv files
+vending_machine_inventory = pd.read_csv("database\\VendingMachine1.csv")
+
+# this is the management_tool
+
 
 def management_layout():
-   sg.theme("DarkBlue3")
+    sg.theme("DarkBlue3")
 
-   vending_machine_ids = [1, 2, 3]
-   
-   layout = [
-            [sg.Text("Please Enter Vending Machine ID: ")],      
-            [sg.Input('', enable_events= True, key = '-INPUT-')],
-            [sg.Button("Enter", key="-Enter-"), sg.Button("Exit")]]
-   
-   window = sg.Window("Management Tool", layout)
+    # Ask for the vending machine number,
+    layout = [
+        [sg.Text("Please Enter Vending Machine ID: ")],
+        [sg.Input("", enable_events=True, key="-INPUT-")],
+        [sg.Button("Enter", key="-Enter-"), sg.Button("Exit")]
+    ]
 
-   while True:
-      
-      event, values = window.read()
+    window = sg.Window("Management Tool", layout)
 
-      print(event, values)
+    while True:
+        event, values = window.read()
 
-      if event == sg.WIN_CLOSED or event == "Exit":
+        print(event, values)  # will output what was entered in
+
+        if (event == sg.WIN_CLOSED or event == "Exit"):  # takes care of window crashing error
             break
-      else:
-          if event == "Enter":
-              if values ["-INPUT-"] == values in vending_machine_ids:
-                  pass # connects to management_tool
-              else:
-                  sg.popup("Invalid Vending Machine ID. . . ")    
-   window.close()
-
-
-
-
+        else:
+            if event == "-Enter-":  # when the user types something in
+                vending_machine_inventory = pd.read_csv("database\VendingMachine{}.csv".format(values["-INPUT-"]), header=0)
+            
+                window.Close()
 
 
 management_layout()

@@ -1,9 +1,9 @@
 import PySimpleGUI as sg
 import pandas as pd
-from vending_machine
+#from vending_machine
 from management_tool import  # gets the functions/functionality from the management tool
 
-
+# this is the management window
 
 def management_layout():
    sg.theme("DarkBlue3")
@@ -28,7 +28,7 @@ def management_layout():
       else:
           if event == "Enter":
               if values ["-INPUT-"] == values in vending_machine_ids:
-                  pass
+                  pass # connects to management_tool
               else:
                   sg.popup("Invalid Vending Machine ID. . . ")    
    window.close()

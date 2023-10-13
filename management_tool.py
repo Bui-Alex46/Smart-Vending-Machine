@@ -13,7 +13,7 @@ def push_restock():
 
 
 layout = [[sg.Text('Demo of Button Callbacks')],
-          [sg.Button('Button 1'), sg.Button('Button 2')]]
+          [sg.Button('View Current Inventory'), sg.Button('Push a Restock')]]
 
 window = sg.Window('Button Callback Simulation', layout)
 
@@ -23,7 +23,7 @@ while True:             # Event Loop
     if event == sg.WIN_CLOSED:
         break
     elif event == 'View Current Inventory':
-        callback_function1()        # call the "view_inventory" function
+        view_inventory()        # call the "view_inventory" function
     elif event == 'Push a Restock':
         push_restock()        # call the "Callback" function
 

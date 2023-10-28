@@ -3,7 +3,7 @@
 # [Here we can place the other files like main, etc]
 
 # import send_instructions from management_tool
-from management_tool import send_instructions, send_email
+from pickle_method_vending import send_instructions, send_email
 
 class Restocker: # In order to get the instructions, the restocker, I think should have some sort of account
     def __init__(self, email ) : # constructor

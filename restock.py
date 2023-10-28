@@ -1,7 +1,7 @@
 import PySimpleGUI as sg
 
 from restocker_instructs import Restocker
-from management_tool import send_instructions, send_email
+from pickle_method_vending import send_instructions, send_email
 
 def create_restock_window():
     sg.theme('LightGreen')

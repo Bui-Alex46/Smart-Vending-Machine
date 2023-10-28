@@ -16,7 +16,7 @@ class Vending_Machine:
         self.item_inventory_list = item_inventory_list
 
         item_inventory_list = [] # empty list
-
+        vending_machine_inventory = item_inventory_list
 
     def get_vending_machine_layout(self, column, row, item_inventory_list): # returns the vending machine layout
         return self.column, self.row, item_inventory_list

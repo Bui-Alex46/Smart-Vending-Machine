@@ -5,7 +5,16 @@ import pandas as pd
 vending_machine_inventory = pd.read_csv("database\\VendingMachine1.csv")
 
 # this is the management_tool
-
+vending_machine_layout = [
+    ["A1", "A2", "A3", "A4", "A5"],
+    ["B1", "B2", "B3", "B4", "B5"],
+    ["C1", "C2", "C3", "C4", "C5"],
+    ["D1", "D2", "D3", "D4", "D5"], 
+    ["E1", "E2", "E3", "E4", "E5"], 
+    ["F1", "F2", "F3", "F4", "F5"],
+    ["G1", "G2", "G3", "G4", "G5"],
+    ["H1", "H2", "H3", "H4", "H5"]
+]
 
 def management_layout():
     sg.theme("DarkBlue3")
@@ -30,13 +39,27 @@ def management_layout():
             if event == "-ENTER-":  # when the user types something in
                 [sg.Text("Select an Option")],
                 [sg.Button("", key="-INVENTORY-"), sg.Button("View Current Machine Inventory")],
-                [sg.Button("", key="-STATUS-"), sg.Button("View Machine Status")]  
-                if event == "-INVENTORY-": # 
+                [sg.Button("", key="-STATUS-"), sg.Button("View Machine Status")],
+                [sg.Button("", key="-LAYOUT-"), sg.Button("View Machine Layout")]  
+                if event == "-INVENTORY-": # View the Inventory
                     
-                    vending_machine_inventory = pd.read_csv("database\VendingMachine{}.csv".format(values["-INPUT-"]), header=0)
-                elif event == "-STATUS-":
+                    vending_machine_inventory = pd.read_csv("database\VendingMachine1.csv")
+                    print(vending_machine_inventory)
+
+                elif event == "-STATUS-": # View the machine status
                     pass
                     # View Machine Status
+                elif event == "-LAYOUT-":
+                    vending_machine_inventory = pd.read_csv("database\VendingMachine1.csv")
+                    # Sample vending machine layout DataFrame (replace this with your actual vending machine layout DataFrame)
+                    # vending_machine_layout_df = pd.DataFrame(...)
+
+                    # Merge the inventory DataFrame with the vending machine layout DataFrame based on the "Location" column
+                    merged_df = pd.merge(vending_machine_layout, vending_machine_inventory, on="Location", how="left")   
+
+                    # Display the merged DataFrame
+                    print("Machine Layout:")
+                    print(merged_df)
            
 
 

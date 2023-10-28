@@ -1,41 +1,41 @@
-item ID,item name,item cost
-1,water,9.00
-2,cheetos,6.00
-3,snickers,3.00
-4,coca cola,4.00
-5,pepsi,1.00
-6,popcorn,2.00
-7,lays chips,3.00
-8,trail mix,3.00
-9,pop tart,4.00
-10,gatorade,5.00
-11,chewing gum,3.00
-12,M&Ms,1.00
-13,peanuts,2.00
-14,tic tacs,4.00
-15,iced coffee,5.00
-16,iced tea,3.00
-17,diet coke,1.00
-18,diet pepsi,5.00
-19,sprite,5.00
-20,root beer,1.00
-21,sierra mist,2.00
-22,7up,3.00
-23,ginger ale,4.00
-24,fanta,1.00
-25,dr pepper,1.00
-26,mountain dew,2.00
-27,diet sprite,4.00
-28,squirt,1.00
-29,kit kat,4.00
-30,skittles,1.00
-31,starburst,4.00
-32,milky way,2.00
-33,nerds,3.00
-34,candy corn,4.00
-35,twix,5.00
-36,hershey's,1.00
-37,crunch,2.00
-38,reese's,1.00
-39,almond joy,7.00
-40,doritos,1.00
+item ID,item name,item cost, location
+1,water,9.00,A1
+2,cheetos,6.00,A2 
+3,snickers,3.00,A3 
+4,coca cola,4.00,A4 
+5,pepsi,1.00,A5
+6,popcorn,2.00,B1
+7,lays chips,3.00,B2
+8,trail mix,3.00,B3
+9,pop tart,4.00,B4
+10,gatorade,5.00,B5
+11,chewing gum,3.00,C1
+12,M&Ms,1.00,C2
+13,peanuts,2.00,C3
+14,tic tacs,4.00,C4
+15,iced coffee,5.00,C5
+16,iced tea,3.00,D1
+17,diet coke,1.00,D2
+18,diet pepsi,5.00,D3
+19,sprite,5.00,D4
+20,root beer,1.00,D5
+21,sierra mist,2.00,E1
+22,7up,3.00,E2
+23,ginger ale,4.00,E3
+24,fanta,1.00,E4
+25,dr pepper,1.00,E5
+26,mountain dew,2.00,F1
+27,diet sprite,4.00,F2
+28,squirt,1.00,F3
+29,kit kat,4.00,F4
+30,skittles,1.00,F5
+31,starburst,4.00,G1
+32,milky way,2.00,G2
+33,nerds,3.00,G3
+34,candy corn,4.00,G4
+35,twix,5.00,G5
+36,hershey's,1.00,H1
+37,crunch,2.00,H2
+38,reese's,1.00,H3
+39,almond joy,7.00,H4
+40,doritos,1.00,H5

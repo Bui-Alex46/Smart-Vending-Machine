@@ -2,7 +2,6 @@ import PySimpleGUI as sg
 from datetime import datetime
 import pickle
 
-
 def change_to_previous_window(previous_window, current_window, windows):
     windows[current_window].close()
     del windows[current_window]
@@ -10,11 +9,15 @@ def change_to_previous_window(previous_window, current_window, windows):
 
 def create_vending_machine_window(Vending_Machine): 
     sg.theme('LightGreen')
-    print(len(Vending_Machine.item_inventory_list))
+    
     layout_vending_machine = [
         # vending machine page where items can be purchased, could be made into separate window which might be smart
         [sg.T('Vending Machine')],
-        *[[sg.B(f'{Vending_Machine.item_inventory_list[y + 5*(x-1)-1].list[0].item_name}', key=(y + 5*(x-1))) for y in range(1, 6)] for x in range(1, 9)],
+        *[[sg.B('{item_name}'
+                .format(item_name='out of stock'
+                        if len(Vending_Machine.item_inventory_list[(y-1) + 5*(x-1)].list) == 0
+                        else Vending_Machine.item_inventory_list[(y-1) + 5*(x-1)].list[0].item_name),
+                key=(y + 5*(x-1))) for y in range(1, 6)] for x in range(1, 9)],
         # how to make size of button change with screen
         [sg.B('Close')],
     ]

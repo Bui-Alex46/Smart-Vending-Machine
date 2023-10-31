@@ -1,9 +1,11 @@
 import PySimpleGUI as sg
 import pickle
+
 from vending_machine import run_vending_machine
 from restock import run_restock
 from management import run_management
-from pickle_method_vending import Vending_Machine
+
+from pickle_method_vending import Vending_Machine, ItemSlot, Item #, Restock
 
 
 def choose_vending_machine_window(vending_machines):

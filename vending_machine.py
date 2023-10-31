@@ -1,19 +1,20 @@
 import PySimpleGUI as sg
-import pandas as pd
 from datetime import datetime
+import pickle
+
 
 def change_to_previous_window(previous_window, current_window, windows):
     windows[current_window].close()
     del windows[current_window]
     windows[previous_window].un_hide()
 
-def create_vending_machine_window(itemTable : pd.DataFrame, vendingMachine : pd.DataFrame): # : pd.DataFrame
+def create_vending_machine_window(Vending_Machine): 
     sg.theme('LightGreen')
-
+    print(len(Vending_Machine.item_inventory_list))
     layout_vending_machine = [
         # vending machine page where items can be purchased, could be made into separate window which might be smart
         [sg.T('Vending Machine')],
-        *[[sg.B(f'{itemTable.at[vendingMachine.at[y + 5*(x-1), "item ID"], "item name"]}', pad=(0,0), key=(y + 5*(x-1))) for y in range(1, 6)] for x in range(1, 9)],
+        *[[sg.B(f'{Vending_Machine.item_inventory_list[y + 5*(x-1)-1].list[0].item_name}', key=(y + 5*(x-1))) for y in range(1, 6)] for x in range(1, 9)],
         # how to make size of button change with screen
         [sg.B('Close')],
     ]
@@ -70,23 +71,24 @@ def end_transaction_window(in_stock : bool, remaining_balance : float):
         
         return sg.Window('Out of stock', layout_out_of_stock)
     
-def complete_purchase(selected_item, vendingMachine, purchaseHistory, vending_machine_num):
+def complete_purchase(selected_item, vendingMachine): # add purchase_history later
     # change Inventory database
-    vendingMachine.at[selected_item['item ID'], 'number in stock'] -= 1
-    vendingMachine.to_csv("database\\VendingMachine{}.csv".format(vending_machine_num), index_label='item slot')
+    vendingMachine.item_inventory_list[selected_item.item_slot-1]
+    with open("vending_machine_1.pkl", "wb") as file: # vending machine #1
+        pickle.dump(vendingMachine, file)
+        file.close()
+
     # add purchase history row
-    purchaseHistory.loc[len(purchaseHistory.index)] = [
-        len(purchaseHistory.index), selected_item['item ID'], pd.to_datetime(datetime.now()), vending_machine_num]
-    purchaseHistory.to_csv("database\\PurchaseHistory.csv", index=False)
+    # purchaseHistory.loc[len(purchaseHistory.index)] = [
+    #     len(purchaseHistory.index), selected_item['item ID'], pd.to_datetime(datetime.now()), vending_machine_num]
+    # purchaseHistory.to_csv("database\\PurchaseHistory.csv", index=False)
     
-def run_vending_machine(vending_machine_num):
-    df_itemTable = pd.read_csv("database\\ItemTable.csv", index_col=0, header=0)
-    df_vendingMachine = pd.read_csv("database\\VendingMachine{}.csv".format(vending_machine_num), index_col=0, header=0)
-    print(df_vendingMachine)
-    df_purchaseHistory = pd.read_csv("database\\PurchaseHistory.csv")
-    
+    return vendingMachine # purchase_history will be returned later as well
+
+def run_vending_machine(loaded_vending_machine):
+   
     windows = {
-        'Vending Machine' : create_vending_machine_window(df_itemTable, df_vendingMachine),
+        'Vending Machine' : create_vending_machine_window(loaded_vending_machine),
     }
     
     previous_window, active_window = 'Main', 'Vending Machine'
@@ -105,14 +107,11 @@ def run_vending_machine(vending_machine_num):
             
         if isinstance(event, int):
             if event > 0 and event < 41:
-                if df_vendingMachine.loc[event]['number in stock'] > 0:
-                    selected_item = {
-                        'item ID'   : df_vendingMachine.loc[event]['item ID'], # waht is this it is wrong?
-                        'item name' : df_itemTable.loc[event]['item name'],
-                        'item cost' : df_itemTable.loc[event]['item cost']
-                    }
-                    remaining_balance = selected_item['item cost']
-                    windows['Buying Item'] = create_payment_window(selected_item['item name'], remaining_balance)
+                if len(loaded_vending_machine.item_inventory_list[event-1].list()) > 0:
+                    selected_item = loaded_vending_machine.item_inventory_list[event-1]
+                    
+                    remaining_balance = selected_item.price
+                    windows['Buying Item'] = create_payment_window(selected_item.item_name, remaining_balance)
                     windows['Vending Machine'].hide()
                     previous_window, active_window = 'Vending Machine', 'Buying Item'
                 else: # if out of stock
@@ -124,7 +123,7 @@ def run_vending_machine(vending_machine_num):
             remaining_balance -= float(event[1:])
             windows['Buying Item']['-remaining-cost-'].update('${:.2f}'.format(remaining_balance))
             if remaining_balance <= 0:
-                complete_purchase(selected_item, df_vendingMachine, df_purchaseHistory, vending_machine_num)
+                complete_purchase(selected_item, loaded_vending_machine)
                 windows['End Transaction'] = end_transaction_window(in_stock=True, remaining_balance=remaining_balance)
                 windows['Buying Item'].close()
                 del windows['Buying Item']

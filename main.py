@@ -38,8 +38,8 @@ def change_to_previous_window(previous_window, current_window):
 
 def complete_purchase(selected_item, remaining_balance):
     # change Inventory database
-    df_vendingMachine1.at[selected_item['item ID'], 'number in stock'] -= 1
-    df_vendingMachine1.to_csv("database\\VendingMachine1.csv", index_label='Item slot')
+    # df_vendingMachine1.at[selected_item['item ID'], 'number in stock'] -= 1
+    # df_vendingMachine1.to_csv("database\\VendingMachine1.csv", index_label='Item slot')
     # add purchase history row
     df_purchaseHistory.loc[len(df_purchaseHistory.index)] = [len(df_purchaseHistory.index), selected_item['item ID'], pd.to_datetime(datetime.now()), 1]
     df_purchaseHistory.to_csv("database\\PurchaseHistory.csv", index=False)

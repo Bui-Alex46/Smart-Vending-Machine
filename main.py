@@ -29,7 +29,7 @@ def create_main_window():
 
     return sg.Window('Main Application', layout_home)
 
-vending_machines = [1, 2, 3]
+vending_machines = [1, 2]
 
 windows = {
     'Choose Machine' : choose_vending_machine_window(vending_machines)
@@ -53,11 +53,11 @@ def main():
             selected_machine = values['-vending-machine-id-']
         if event == 'Vending Machine':
             windows['Main'].hide()
-            run_vending_machine()
+            run_vending_machine(selected_machine)
             windows['Main'].un_hide()
         if event == 'Restock':
             windows['Main'].hide()
-            run_restock()
+            run_restock(selected_machine)
             windows['Main'].un_hide()
         if event == 'Manage':
             windows['Main'].hide()

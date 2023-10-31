@@ -70,21 +70,23 @@ def end_transaction_window(in_stock : bool, remaining_balance : float):
         
         return sg.Window('Out of stock', layout_out_of_stock)
     
-def complete_purchase(selected_item, vendingMachine, purchaseHistory):
+def complete_purchase(selected_item, vendingMachine, purchaseHistory, vending_machine_num):
     # change Inventory database
     vendingMachine.at[selected_item['item ID'], 'number in stock'] -= 1
-    vendingMachine.to_csv("database\\VendingMachine1.csv", index_label='item slot')
+    vendingMachine.to_csv("database\\VendingMachine{}.csv".format(vending_machine_num), index_label='item slot')
     # add purchase history row
-    purchaseHistory.loc[len(purchaseHistory.index)] = [len(purchaseHistory.index), selected_item['item ID'], pd.to_datetime(datetime.now()), 1]
+    purchaseHistory.loc[len(purchaseHistory.index)] = [
+        len(purchaseHistory.index), selected_item['item ID'], pd.to_datetime(datetime.now()), vending_machine_num]
     purchaseHistory.to_csv("database\\PurchaseHistory.csv", index=False)
     
-def run_vending_machine():
+def run_vending_machine(vending_machine_num):
     df_itemTable = pd.read_csv("database\\ItemTable.csv", index_col=0, header=0)
-    df_vendingMachine1 = pd.read_csv("database\\VendingMachine1.csv", index_col=0, header=0)
+    df_vendingMachine = pd.read_csv("database\\VendingMachine{}.csv".format(vending_machine_num), index_col=0, header=0)
+    print(df_vendingMachine)
     df_purchaseHistory = pd.read_csv("database\\PurchaseHistory.csv")
     
     windows = {
-        'Vending Machine' : create_vending_machine_window(df_itemTable, df_vendingMachine1),
+        'Vending Machine' : create_vending_machine_window(df_itemTable, df_vendingMachine),
     }
     
     previous_window, active_window = 'Main', 'Vending Machine'
@@ -103,9 +105,9 @@ def run_vending_machine():
             
         if isinstance(event, int):
             if event > 0 and event < 41:
-                if df_vendingMachine1.loc[event]['number in stock'] > 0:
+                if df_vendingMachine.loc[event]['number in stock'] > 0:
                     selected_item = {
-                        'item ID'   : df_vendingMachine1.loc[event]['item ID'], # waht is this it is wrong?
+                        'item ID'   : df_vendingMachine.loc[event]['item ID'], # waht is this it is wrong?
                         'item name' : df_itemTable.loc[event]['item name'],
                         'item cost' : df_itemTable.loc[event]['item cost']
                     }
@@ -122,7 +124,7 @@ def run_vending_machine():
             remaining_balance -= float(event[1:])
             windows['Buying Item']['-remaining-cost-'].update('${:.2f}'.format(remaining_balance))
             if remaining_balance <= 0:
-                complete_purchase(selected_item, df_vendingMachine1, df_purchaseHistory)
+                complete_purchase(selected_item, df_vendingMachine, df_purchaseHistory, vending_machine_num)
                 windows['End Transaction'] = end_transaction_window(in_stock=True, remaining_balance=remaining_balance)
                 windows['Buying Item'].close()
                 del windows['Buying Item']

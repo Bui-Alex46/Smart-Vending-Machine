@@ -30,11 +30,11 @@ def create_restock_window(item_table : pd.DataFrame, restock_instructions: pd.Da
         ]
         return sg.Window('Restock', layout_restock) #, resizable=True) #, finalize=True)
 
-def run_restock():
+def run_restock(vending_machine_num):
     df_itemTable = pd.read_csv("database\\ItemTable.csv", index_col=0, header=0)
-    df_vendingMachine1 = pd.read_csv("database\\VendingMachine1.csv", index_col=0, header=0)
-    df_vendingMachine1.index.name = "item slot"
-    df_restockInstructions = pd.read_csv("database\\RestockInstructions.csv", index_col=0, header=0)
+    df_vendingMachine = pd.read_csv("database\\VendingMachine{}.csv".format(vending_machine_num), index_col=0, header=0)
+    df_vendingMachine.index.name = "item slot"
+    df_restockInstructions = pd.read_csv("database\\RestockInstructions{}.csv".format(vending_machine_num), index_col=0, header=0)
     df_restockInstructions.index.name = "item slot"
     
     restock_window = create_restock_window(df_itemTable, df_restockInstructions)
@@ -44,12 +44,12 @@ def run_restock():
         if event in (None, 'Exit', 'Close', 'Cancel'):
             break
         if event == '-submit-restock-': # changes inventory after restock
-            updated_inventory = [[row['item ID'], row['number to add'] + df_vendingMachine1.loc[index]['number in stock']] 
+            updated_inventory = [[row['item ID'], row['number to add'] + df_vendingMachine.loc[index]['number in stock']] 
                                     if row['add or replace'] == 'add' else [row['item ID'], row['number to add']]
              for index, row in df_restockInstructions.iterrows()]
-            df_vendingMachine1 = pd.DataFrame(updated_inventory, index=([x for x in range(1, 41)]), columns=(['item ID', 'number in stock']))
-            df_vendingMachine1.index.name = 'item slot'
-            df_vendingMachine1.to_csv("database\\VendingMachine1.csv", index_label='item slot')
+            df_vendingMachine = pd.DataFrame(updated_inventory, index=([x for x in range(1, 41)]), columns=(['item ID', 'number in stock']))
+            df_vendingMachine.index.name = 'item slot'
+            df_vendingMachine.to_csv("database\\VendingMachine{}.csv".format(vending_machine_num), index_label='item slot')
 
             break
             

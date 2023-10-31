@@ -79,7 +79,7 @@ def create_set_restock_instructions_window(itemTable : pd.DataFrame, vendingMach
 
     return sg.Window('Set Restock Instructions', layout_set_restock_instructions, finalize=False)
 
-def create_view_status_window(df_error): # error specific to vending machine?
+def create_view_status_window(df_error, vending_machine_status): # error specific to vending machine?
     sg.theme('LightGreen')
 
     # df {
@@ -88,7 +88,7 @@ def create_view_status_window(df_error): # error specific to vending machine?
     #}
 
     layout_status = [
-        [sg.T('Status of vending machine: Online')],
+        [sg.T('Status of vending machine: ', vending_machine_status)],
         [sg.Table(values=df_error.values.tolist(),
                   headings=df_error.columns.tolist(),
                   #auto_size_columns=False,
@@ -100,13 +100,14 @@ def create_view_status_window(df_error): # error specific to vending machine?
 
     return sg.Window('View Status', layout_status)
 
-def run_management(vending_machine):
+def run_management(vending_machine_num):
     df_itemTable = pd.read_csv("database\\ItemTable.csv", index_col=0, header=0)
     df_itemTable.index.name = "item ID"
-    df_VendingMachine = pd.read_csv("database\VendingMachine{}.csv".format(vending_machine), header=0)
+    df_VendingMachine = pd.read_csv("database\VendingMachine{}.csv".format(vending_machine_num), header=0)
     df_VendingMachine.index.name = "item slot"
     df_purchaseHistory = pd.read_csv("database\\PurchaseHistory.csv", header=0)
-    df_status = pd.DataFrame({'error' : ['hello'], 'vending_machine_id' : [1]})
+    df_error = pd.DataFrame({'error' : ['hello'], 'vending_machine_id' : [vending_machine_num]})
+    vending_machine_status = True
     
     windows = {
         'Manage' : create_management_window()
@@ -146,7 +147,7 @@ def run_management(vending_machine):
             # save to restockInstructions csv
             df_restock_instructions = pd.DataFrame(restock_instructions, index=([x for x in range(1, 41)]), columns=(['add or replace', 'item ID', 'number to add']))
             df_restock_instructions.index.name = 'item slot'
-            df_restock_instructions.to_csv("database\\RestockInstructions.csv", index_label='item slot')
+            df_restock_instructions.to_csv("database\\RestockInstructions{}.csv".format(vending_machine_num), index_label='item slot')
 
             change_to_previous_window(previous_window, active_window, windows)
             previous_window, active_window = 'Main', 'Manage'
@@ -156,7 +157,7 @@ def run_management(vending_machine):
             previous_window, active_window = 'Manage', 'View Inventory'
         if event == 'View Status':
             windows['Manage'].hide()
-            windows['View Status'] = create_view_status_window(df_status)
+            windows['View Status'] = create_view_status_window(df_error, vending_machine_status)
             previous_window, active_window = 'Manage', 'View Status'
             
     windows['Manage'].close()

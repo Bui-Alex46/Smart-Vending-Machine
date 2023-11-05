@@ -2,12 +2,14 @@ import PySimpleGUI as sg
 from datetime import datetime
 import pickle
 
+from pickle_method_vending import *
+
 def change_to_previous_window(previous_window, current_window, windows):
     windows[current_window].close()
     del windows[current_window]
     windows[previous_window].un_hide()
 
-def create_vending_machine_window(Vending_Machine): 
+def create_vending_machine_window(vending_machine : Vending_Machine): 
     sg.theme('LightGreen')
     
     layout_vending_machine = [
@@ -15,8 +17,8 @@ def create_vending_machine_window(Vending_Machine):
         [sg.T('Vending Machine')],
         *[[sg.B('{item_name}'
                 .format(item_name='out of stock'
-                        if len(Vending_Machine.item_inventory_list[(y-1) + 5*(x-1)].list) == 0
-                        else Vending_Machine.item_inventory_list[(y-1) + 5*(x-1)].list[0].item_name),
+                        if vending_machine.get_slot(y + 5*(x - 1)).get_first_item() == None
+                        else vending_machine.get_slot(y + 5*(x - 1)).get_first_item().get_name()),
                 key=(y + 5*(x-1))) for y in range(1, 6)] for x in range(1, 9)],
         # how to make size of button change with screen
         [sg.B('Close')],
@@ -26,13 +28,13 @@ def create_vending_machine_window(Vending_Machine):
 
 #another option is to create a new window?
 
-def create_payment_window(item_name : str, purchase_cost : float):
+def create_payment_window(item : Item):
     sg.theme('LightGreen')
     
     layout_purchase = [
         #[sg.T('Buying Item')],
-        [sg.T(item_name, key='-item-name-')],
-        [sg.T('${:.2f}'.format(purchase_cost), key='-remaining-cost-')],
+        [sg.T(item.get_name(), key='-item-name-')],
+        [sg.T('${:.2f}'.format(item.get_price()), key='-remaining-cost-')],
         [sg.B('$5.00'), sg.B('$1.00'), sg.B('$0.50'), sg.B('$0.25')],
         [sg.B('Change or Close', tooltip='Click this to get change back or stop transaction')], #change button to get back money spent so far
     ]
@@ -74,24 +76,22 @@ def end_transaction_window(in_stock : bool, remaining_balance : float):
         
         return sg.Window('Out of stock', layout_out_of_stock)
     
-def complete_purchase(selected_item, vendingMachine): # add purchase_history later
+def complete_purchase(item_slot_num, vending_machine : Vending_Machine): # add purchase_history later
     # change Inventory database
-    vendingMachine.item_inventory_list[selected_item.item_slot-1]
+    vending_machine.process_purchase(vending_machine.get_slot(item_slot_num))
     with open("vending_machine_1.pkl", "wb") as file: # vending machine #1
-        pickle.dump(vendingMachine, file)
+        pickle.dump(vending_machine, file)
         file.close()
+        
+def in_stock(vending_machine : Vending_Machine, item_slot_num):
+    if vending_machine.get_slot(item_slot_num).get_first_item() != None:
+        return True
+    return False
 
-    # add purchase history row
-    # purchaseHistory.loc[len(purchaseHistory.index)] = [
-    #     len(purchaseHistory.index), selected_item['item ID'], pd.to_datetime(datetime.now()), vending_machine_num]
-    # purchaseHistory.to_csv("database\\PurchaseHistory.csv", index=False)
-    
-    return vendingMachine # purchase_history will be returned later as well
-
-def run_vending_machine(loaded_vending_machine):
+def run_vending_machine(vending_machine : Vending_Machine):
    
     windows = {
-        'Vending Machine' : create_vending_machine_window(loaded_vending_machine),
+        'Vending Machine' : create_vending_machine_window(vending_machine),
     }
     
     previous_window, active_window = 'Main', 'Vending Machine'
@@ -110,15 +110,16 @@ def run_vending_machine(loaded_vending_machine):
             
         if isinstance(event, int):
             if event > 0 and event < 41:
-                if len(loaded_vending_machine.item_inventory_list[event-1].list()) > 0:
-                    selected_item = loaded_vending_machine.item_inventory_list[event-1]
+                if in_stock(vending_machine, event):
+                    selected_item = vending_machine.get_slot(event).get_first_item()
+                    item_slot_selected = event
                     
-                    remaining_balance = selected_item.price
-                    windows['Buying Item'] = create_payment_window(selected_item.item_name, remaining_balance)
+                    remaining_balance = selected_item.get_price()
+                    windows['Buying Item'] = create_payment_window(selected_item)
                     windows['Vending Machine'].hide()
                     previous_window, active_window = 'Vending Machine', 'Buying Item'
                 else: # if out of stock
-                    windows['End Transaction'] = end_transaction_window(False, 0)
+                    windows['End Transaction'] = end_transaction_window(in_stock=False, remaining_balance=0)
                     windows['Vending Machine'].hide()
                     previous_window, active_window = 'Vending Machine', 'End Transaction'
         if event in ("$5.00", "$1.00", "$0.50", "$0.25"): 
@@ -126,7 +127,7 @@ def run_vending_machine(loaded_vending_machine):
             remaining_balance -= float(event[1:])
             windows['Buying Item']['-remaining-cost-'].update('${:.2f}'.format(remaining_balance))
             if remaining_balance <= 0:
-                complete_purchase(selected_item, loaded_vending_machine)
+                complete_purchase(item_slot_selected, vending_machine)
                 windows['End Transaction'] = end_transaction_window(in_stock=True, remaining_balance=remaining_balance)
                 windows['Buying Item'].close()
                 del windows['Buying Item']

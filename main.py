@@ -5,7 +5,7 @@ from vending_machine import run_vending_machine
 from restock import run_restock
 from management import run_management
 
-from pickle_method_vending import Vending_Machine, ItemSlot, Item #, Restock
+from pickle_method_vending import *
 
 
 def choose_vending_machine_window(vending_machines):
@@ -33,7 +33,7 @@ def create_main_window():
 
     return sg.Window('Main Application', layout_home)
 
-vending_machines = [1, 2]
+vending_machines = [1, 70]
 
 windows = {
     'Choose Machine' : choose_vending_machine_window(vending_machines)
@@ -41,16 +41,35 @@ windows = {
 # Saving vending machine objects using pickle
 # with open("vending_machine_1.pkl", "wb") as file: # vending machine #1
 #     pickle.dump(vending_machine_1, file)
+#     file.close()
 
-# with open("vending_machine_2.pkl", "wb") as file: # vending machine #2
-#     pickle.dump(vending_machine_2, file)
+# restock_machine_1 = Restock([Restock_Slot(x, None, 0) for x in range(1, 41)], 1)
+# with open("restock_machine_1.pkl", "wb") as file: # vending machine #2
+#     pickle.dump(restock_machine_1, file)
+#     file.close()
+
+def load_vending_machine(selected_machine):
+    # Loading vending machine objects from pickle files
+    with open("vending_machine_{}.pkl".format(selected_machine), "rb") as file:
+        loaded_vending_machine = pickle.load(file)
+        file.close()
+    return loaded_vending_machine
+
+def load_management_machine(selected_machine):
+    # Loading vending machine objects from pickle files
+    with open("management_machine.pkl", "rb") as file:
+        loaded_management_machine = pickle.load(file)
+        file.close()
+    return loaded_management_machine
+
+def load_restock_machine(selected_machine):
+    # Loading vending machine objects from pickle files
+    with open("restock_machine_{}.pkl".format(selected_machine), "rb") as file:
+        loaded_restock_machine = pickle.load(file)
+        file.close()
+    return loaded_restock_machine
 
 
-
-# with open("vending_machine_2.pkl", "rb") as file:
-#     loaded_vending_machine_2 = pickle.load(file)
-#     print("Loaded Vending Machine 2 layout:", loaded_vending_machine_2.row, "x", loaded_vending_machine_2.column)
-#     print("Loaded Vending Machine 2 ID:", loaded_vending_machine_2.get_vending_machine_id())
 def main():
     active_window = 'Choose Machine'
     
@@ -67,26 +86,25 @@ def main():
             windows['Main'] = create_main_window()
             active_window = 'Main'
             selected_machine = values['-vending-machine-id-']
-            # Loading vending machine objects from pickle files
-            with open("vending_machine_{}.pkl".format(selected_machine), "rb") as file:
-                loaded_vending_machine = pickle.load(file)
-            # with open("restock_machine{}.pkl".format(selected_machine), "rb") as file:
-            #     loaded_restock_machine = pickle.load(file)
-            # with open("management_machine{}.pkl".format(selected_machine), "rb") as file:
-            #     loaded_management_machine = pickle.load(file)
-                # print("Loaded Vending Machine 1 layout:", loaded_vending_machine_1.row, "x", loaded_vending_machine_1.column)
-                # print("Loaded Vending Machine 1 ID:", loaded_vending_machine_1.get_vending_machine_id())
+            # loaded_vending_machine = load_vending_machine(selected_machine)
+            # redefine_vending_machine_1(loaded_vending_machine)
         if event == 'Vending Machine':
             windows['Main'].hide()
+            loaded_vending_machine = load_vending_machine(selected_machine)
             run_vending_machine(loaded_vending_machine)
             windows['Main'].un_hide()
         if event == 'Restock':
             windows['Main'].hide()
-            # run_restock(loaded_restock_machine)
+            loaded_vending_machine = load_vending_machine(selected_machine)
+            loaded_restock_machine = load_restock_machine(selected_machine)
+            run_restock(loaded_restock_machine, loaded_vending_machine)
             windows['Main'].un_hide()
         if event == 'Manage':
             windows['Main'].hide()
-            # run_management(loaded_management_machine, loaded_restock_machine, loaded_vending_machine) # order will matter in the future
+            loaded_vending_machine = load_vending_machine(selected_machine)
+            loaded_restock_machine = load_restock_machine(selected_machine)
+            loaded_management_machine = load_management_machine(selected_machine)
+            run_management(loaded_vending_machine, loaded_restock_machine, loaded_management_machine)
             windows['Main'].un_hide()
 
     windows['Choose Machine'].close()

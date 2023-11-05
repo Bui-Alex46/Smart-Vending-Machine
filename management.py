@@ -1,7 +1,7 @@
 import PySimpleGUI as sg
-import pandas as pd
 
 from vending_machine import change_to_previous_window
+from pickle_method_vending import *
 
 def create_management_window():
     sg.theme('LightGreen')
@@ -15,18 +15,15 @@ def create_management_window():
 
     return sg.Window('Management', layout_manage, resizable=True) #, finalize=True)
 
-def create_purchase_history_window(itemTable : pd.DataFrame, purchaseHistory : pd.DataFrame):
+def create_purchase_history_window(purchase_history):
     sg.theme('LightGreen')
-
-    modified_purchaseHistory = purchaseHistory.merge(itemTable, left_on='purchased item ID', right_on='item ID', how='left')
-    view_purchaseHistory = modified_purchaseHistory[['transaction ID', 'item name', 'time of transaction', 'vending machine ID']]
     
     layout_purchase_history = [
         # layout of purchase history
-        [sg.Table(values=view_purchaseHistory.values.tolist(),
-                  headings=view_purchaseHistory.columns.tolist(),
+        [sg.Table(values=[[purchase.item.item_name, purchase.date_time_of_transaction] for purchase in purchase_history],
+                  headings=['Item', 'Date & Time of Transaction'],
                   #auto_size_columns=False,
-                  display_row_numbers=False,
+                  display_row_numbers=True,
                   justification='right',
                   #num_rows=min(25, len(purchaseHistory)),
         )],
@@ -36,39 +33,52 @@ def create_purchase_history_window(itemTable : pd.DataFrame, purchaseHistory : p
 
     return sg.Window('Purchase History', layout_purchase_history, finalize=False) #, finalize=True)
 
-def create_view_inventory_window(itemTable : pd.DataFrame, vendingMachine : pd.DataFrame):
+def create_view_inventory_window(inventory):
     sg.theme('LightGreen')
-
-    # print(vendingMachine)
-    modified_vendingMachine = vendingMachine.merge(itemTable, left_on='item ID', right_on='item ID', how='left')
-    view_VendingMachine = modified_vendingMachine[['item slot', 'item name', 'number in stock']]
     
-    layout_vending_machine = [
-        [sg.Table(values=view_VendingMachine.values.tolist(),
-                  headings=view_VendingMachine.columns.tolist(),
-                  #auto_size_columns=False,
+    column_table = [
+        [sg.Table(values=[[slot.item_slot_num,
+                           'out of stock' if len(slot.list) == 0 
+                           else slot.product_title,len(slot.list)] 
+                          for slot in inventory],
+                  headings=['Item slot', 'Item name', 'Number in stock'], # need to add expiration date
+                  auto_size_columns=True,
                   display_row_numbers=False,
                   justification='right',
-                  #num_rows=min(40, len(vendingMachine)),
+                  # new window or table to show items in item slot
         )],
         # how to make size of button change with screen
+    ]
+    
+    column_buttons = [
+        *[[sg.Button('Show Items in Slot {slot_num}'.format(slot_num=slot.item_slot_num), key='show-items-{slot_num}'.format(slot_num=slot.item_slot_num))] for slot in inventory]
+    ]
+    
+    layout_item_slot_table = [
+        [sg.Table(values=[], headings=['item_name', 'price', 'expiration_date'],
+                  display_row_numbers=True, justification='right', key='item-slot-data')]
+    ]
+     
+    layout_vending_machine =[
+        [sg.Column(column_table, size=(500, 300)), sg.Column(column_buttons, scrollable=True, vertical_scroll_only=True, size=(150, 300))], # , scrollable=True, vertical_scroll_only=True
+        [layout_item_slot_table],
         [sg.B('Close')],
     ]
 
-    return sg.Window('Purchase History', layout_vending_machine, finalize=False) #, finalize=True)
+    return sg.Window('Vending Machine Inventory', layout_vending_machine, finalize=False) #, finalize=True)
 
-def create_set_restock_instructions_window(itemTable : pd.DataFrame, vendingMachine : pd.DataFrame):
+def create_set_restock_instructions_window(vending_machine, restock_list, management_machine):
     sg.theme('LightGreen')
-
-    # [print(index, row) for index, row in vendingMachine.iterrows()]
 
     column = [
         # list all elements, then list current amount in stock, then field to change amount to be restocked?
         # Slot 1 Current Item: text New item: Drop menu Current Quantity: (0-15)text New Amount: (0-15)spin
-        *[[sg.T('Slot {slot_num} Current Item: {current_item} New Item: '.format(slot_num=index, current_item=itemTable.loc[row['item ID']]['item name'])),
-            sg.Drop(values=itemTable['item name'].tolist(), default_value=itemTable.loc[row['item ID']]['item name'], key='-restock-item-name-{}-'.format(index)),
-            sg.T(' Current Quantity: {current_amount} New Amount: '.format(current_amount=row['number in stock'])),
-            sg.Spin(values=[i for i in range(16)], initial_value=row['number in stock'], size=(6, 1), key='-restock-new-amount-{}-'.format(index))] for index, row in vendingMachine.iterrows()],
+        *[[sg.T('Slot {slot_num} Current Item: {current_item} New Item: '.format(slot_num=restock.item_slot, 
+                                                                                 current_item="None" if vending_machine.get_slot(restock.item_slot).get_first_item() == None 
+                                                                                 else vending_machine.get_slot(restock.item_slot).get_first_item())),
+            sg.Drop(values=management_machine.available_items, default_value=vending_machine.get_slot(restock.item_slot).get_first_item(), key='-restock-item-name-{}-'.format(restock.item_slot)),
+            sg.T(' Current Quantity: {current_amount} New Amount: '.format(current_amount=len(vending_machine.get_slot(restock.item_slot).list))),
+            sg.Spin(values=[i for i in range(16)], initial_value=len(vending_machine.get_slot(restock.item_slot).list), size=(6, 1), key='-restock-new-amount-{}-'.format(restock.item_slot))] for restock in restock_list],
     ]
 
     layout_set_restock_instructions = [
@@ -79,35 +89,30 @@ def create_set_restock_instructions_window(itemTable : pd.DataFrame, vendingMach
 
     return sg.Window('Set Restock Instructions', layout_set_restock_instructions, finalize=False)
 
-def create_view_status_window(df_error, vending_machine_status): # error specific to vending machine?
+def create_view_status_window(status):
     sg.theme('LightGreen')
 
-    # df {
-    #    'error'              : string of error
-    #    'vending_machine_id' : id num
-    #}
-
     layout_status = [
-        [sg.T('Status of vending machine: ', vending_machine_status)],
-        [sg.Table(values=df_error.values.tolist(),
-                  headings=df_error.columns.tolist(),
-                  #auto_size_columns=False,
-                  display_row_numbers=False,
-                  justification='right',
-        )],
+        [sg.T('Status of vending machine: {status}'.format(status=status))],
         [sg.B('Close')],
     ]
 
-    return sg.Window('View Status', layout_status)
+    return sg.Window('View Status', layout_status, finalize=False)
 
-def run_management(vending_machine_num):
-    df_itemTable = pd.read_csv("database\\ItemTable.csv", index_col=0, header=0)
-    df_itemTable.index.name = "item ID"
-    df_VendingMachine = pd.read_csv("database\VendingMachine{}.csv".format(vending_machine_num), header=0)
-    df_VendingMachine.index.name = "item slot"
-    df_purchaseHistory = pd.read_csv("database\\PurchaseHistory.csv", header=0)
-    df_error = pd.DataFrame({'error' : ['hello'], 'vending_machine_id' : [vending_machine_num]})
-    vending_machine_status = True
+def update_restock(restock_machine, values, vending_machine):
+    # print(values['-restock-item-name-{}-'.format(1)].get_name() == vending_machine.get_slot(1).get_product_title())
+    restock_machine.restock_list = [Restock_Slot(x, values['-restock-item-name-{}-'.format(x)], 
+            values['-restock-new-amount-{}-'.format(x)] - len(vending_machine.get_slot(x).list) 
+            if values['-restock-item-name-{}-'.format(x)].get_name() == vending_machine.get_slot(x).get_product_title()
+            else values['-restock-new-amount-{}-'.format(x)], 
+            values['-restock-item-name-{}-'.format(x)].get_name() != vending_machine.get_slot(x).get_product_title()
+            ) for x in range(1, 41)] # needs to say to remove items and add new ones if changing items
+    # save to restockInstructions csv
+    with open("restock_machine_{}.pkl".format(restock_machine.machine_id), "wb") as file: # vending machine #2
+        pickle.dump(restock_machine, file)
+        file.close()
+
+def run_management(vending_machine : Vending_Machine, restock_machine : Restock, management_machine : Management):
     
     windows = {
         'Manage' : create_management_window()
@@ -128,36 +133,28 @@ def run_management(vending_machine_num):
                 previous_window = 'Main'
         if event == 'Purchase History': # displays purchase history on management tool
             windows['Manage'].hide()
-            windows['Purchase History'] = create_purchase_history_window(df_itemTable, df_purchaseHistory)
+            windows['Purchase History'] = create_purchase_history_window(vending_machine.purchase_history_list)
             previous_window, active_window = 'Manage', 'Purchase History'
         if event == 'set restock instructions': # management window for settting restock instructions
             windows['Manage'].hide()
-            windows['Set Restock'] = create_set_restock_instructions_window(df_itemTable, df_VendingMachine)
+            windows['Set Restock'] = create_set_restock_instructions_window(vending_machine, restock_machine.restock_list, management_machine)
             previous_window, active_window = 'Manage', 'Set Restock'
         if event == '-save-restock-changes-':
-            # print(df_itemTable.loc[df_itemTable['item name'] == values['-restock-item-name-15-']].index[0])
-            restock_data = [[df_itemTable.loc[df_itemTable['item name'] == values['-restock-item-name-{}-'.format(x)]].index[0], 
-              values['-restock-new-amount-{}-'.format(x)]]
-             for x in range(1, 41)]
-
-            # [item slot,add or replace,item ID,number to add]
-            restock_instructions = [['add', restock_data[x][0], restock_data[x][1] - df_VendingMachine.loc[x+1]['number in stock']] 
-                                    if restock_data[x][0] == df_VendingMachine.loc[x+1]['item ID'] 
-                                    else [x+1, 'replace', restock_data[x][0], restock_data[x][1]] for x in range(40)]
-            # save to restockInstructions csv
-            df_restock_instructions = pd.DataFrame(restock_instructions, index=([x for x in range(1, 41)]), columns=(['add or replace', 'item ID', 'number to add']))
-            df_restock_instructions.index.name = 'item slot'
-            df_restock_instructions.to_csv("database\\RestockInstructions{}.csv".format(vending_machine_num), index_label='item slot')
-
+            update_restock(restock_machine, values, vending_machine)
             change_to_previous_window(previous_window, active_window, windows)
             previous_window, active_window = 'Main', 'Manage'
         if event == 'management-view-inventory':
             windows['Manage'].hide()
-            windows['View Inventory'] = create_view_inventory_window(df_itemTable, df_VendingMachine)
+            windows['View Inventory'] = create_view_inventory_window(vending_machine.item_inventory_list)
             previous_window, active_window = 'Manage', 'View Inventory'
         if event == 'View Status':
             windows['Manage'].hide()
-            windows['View Status'] = create_view_status_window(df_error, vending_machine_status)
+            windows['View Status'] = create_view_status_window(vending_machine.get_status())
             previous_window, active_window = 'Manage', 'View Status'
+        for slot in vending_machine.item_inventory_list:
+            if event == f'show-items-{slot.get_item_slot_num()}':
+                # Populate the table with the items from the slot
+                item_data = [[item.get_name(), item.get_price(), item.get_expiration_date()] for item in slot.list]
+                windows['View Inventory']['item-slot-data'].update(values=item_data)
             
     windows['Manage'].close()

@@ -4,13 +4,14 @@ import pickle
 class Vending_Machine:
     vending_machine_layout = []
 
-    def __init__(self, num_rows, num_columns, status, item_inventory_list, purchase_history_list, machine_id) -> None: # Has the Properties of the vending machine
+    def __init__(self, num_rows, num_columns, status, item_inventory_list, purchase_history_list, machine_id, errors_list) -> None: # Has the Properties of the vending machine
         self.num_rows = num_rows
         self.num_columns = num_columns
         self.status = status
         self.item_inventory_list = item_inventory_list
         self.purchase_history_list = purchase_history_list
         self.machine_id = machine_id
+        self.errors_list = errors_list
     
     def set_vending_machine_layout(self, item_inventory_list): # here we will define the dimensions (layout) of a vending machine
         # needs to be at least one item in inventory for there to be an item in layout
@@ -35,6 +36,9 @@ class Vending_Machine:
     def get_slot(self, slot_num):
         return self.item_inventory_list[slot_num - 1]
     
+    def get_errors(self):
+        return self.errors_list
+    
     def process_purchase(self, item_slot):
         self.purchase_history_list.append(Purchase_History(item_slot.list[0], datetime.now()))
         self.get_slot(item_slot.get_item_slot_num()).list.pop(0)
@@ -44,11 +48,21 @@ class Vending_Machine:
         for x in range(len(restock_changes)):
             if not (restock_changes[x].remove_current_items): # adjust current items. how do we deal with expiration dates
                 if restock_changes[x].number_to_add < 0:
-                    self.item_inventory_list[x].replace_list(self.get_slot(x+1).list[abs(restock_changes[x].number_to_add):])
+                    self.item_inventory_list[x].replace_list(self.get_slot(x + 1).list[abs(restock_changes[x].number_to_add):])
+                    # print("Remove items")
                 if restock_changes[x].number_to_add > 0:
-                    self.item_inventory_list[x].list.extend([self.item_inventory_list[x].get_first_item() for x in range(restock_changes[x].number_to_add)])
+                    new_item = self.get_slot(x + 1).get_first_item()
+                    new_items = [Item(new_item.price, new_item.item_name, new_item.expiration_days) for i in range(restock_changes[x].number_to_add)]
+                    [item.set_expiration_date() for item in new_items]
+                    # print(len(new_items))
+                    # print(new_items[0].expiration_date)
+                    self.item_inventory_list[x].list.extend(new_items)
             else: # replace all items with new ones
-                self.item_inventory_list[x].replace_list([restock_changes[x].change_to_item for i in range(restock_changes[x].number_to_add)])
+                # print("Replace items")
+                new_item = restock_changes[x].change_to_item
+                new_items = [Item(new_item.price, new_item.item_name, new_item.expiration_days) for i in range(restock_changes[x].number_to_add)]
+                [item.set_expiration_date() for item in new_items]
+                self.item_inventory_list[x].replace_list(new_items)
                 self.item_inventory_list[x].product_title = restock_changes[x].change_to_item.get_name()
 ## END of Vending Machine Class
 
@@ -144,7 +158,7 @@ def redefine_vending_machine_1(vending_machine):
         vending_machine_1_slots.append(ItemSlot(item_list, item_slot.item_slot_num, item_list[0].get_name()))
     # Creating vending machine objects
     vending_machine_1 = Vending_Machine(8, 5, "active", 
-    vending_machine_1_slots, vending_machine.purchase_history_list, machine_id="1")
+    vending_machine_1_slots, vending_machine.purchase_history_list, machine_id="1", errors_list=[])
 
     with open("vending_machine_1.pkl", "wb") as file: # vending machine #1
         pickle.dump(vending_machine_1, file)

@@ -86,7 +86,7 @@ def main():
             windows['Main'] = create_main_window()
             active_window = 'Main'
             selected_machine = values['-vending-machine-id-']
-            # loaded_vending_machine = load_vending_machine(selected_machine)
+            # loaded_vending_machine = load_vending_machine(selected_machine) # used to redefine vending_machine object to change parameters or add attributes
             # redefine_vending_machine_1(loaded_vending_machine)
         if event == 'Vending Machine':
             windows['Main'].hide()

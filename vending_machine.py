@@ -133,7 +133,7 @@ def run_vending_machine(vending_machine : Vending_Machine):
                 del windows['Buying Item']
                 active_window = 'End Transaction' # don't want to go back to buying item so vending machine is still previous window
         if event == 'Change or Close': # receive change back or cancel purchase on vending machine
-            change = selected_item['item cost'] - remaining_balance
+            change = selected_item.get_price() - remaining_balance
             if change == 0.0: # if no change was entered and they just don't want to buy
                 change_to_previous_window(previous_window, active_window, windows) # go back to previous window
                 active_window = previous_window

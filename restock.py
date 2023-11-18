@@ -33,6 +33,13 @@ def create_restock_window(restock_machine):
             [sg.Submit(key='-submit-restock-'), sg.B('Cancel')]
         ]
         return sg.Window('Restock', layout_restock) #, resizable=True) #, finalize=True)
+    
+def restock_is_valid(restock_list, vending_machine):
+    for restock in restock_list:
+        new_amount = len(vending_machine.get_slot(restock.item_slot).list) + restock.number_to_add
+        if new_amount > 15 or new_amount < 0:
+            return False
+    return True
 
 def run_restock(restock_machine : Restock, vending_machine : Vending_Machine):
     restock_window = create_restock_window(restock_machine)
@@ -42,11 +49,11 @@ def run_restock(restock_machine : Restock, vending_machine : Vending_Machine):
         if event in (None, 'Exit', 'Close', 'Cancel'):
             break
         if event == '-submit-restock-': # changes inventory after restock
-            vending_machine.restock_machine(restock_machine.restock_list)
-            with open("vending_machine_{}.pkl".format(vending_machine.get_vending_machine_id()), "wb") as file:
-                pickle.dump(vending_machine, file)
-                file.close()
-
-            break
+            if restock_is_valid(restock_machine.restock_list, vending_machine):
+                vending_machine.restock_machine(restock_machine.restock_list)
+                with open("vending_machine_{}.pkl".format(vending_machine.get_vending_machine_id()), "wb") as file:
+                    pickle.dump(vending_machine, file)
+                    file.close()
+                break
             
     restock_window.close()

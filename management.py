@@ -55,7 +55,7 @@ def create_view_inventory_window(inventory):
     ]
     
     layout_item_slot_table = [
-        [sg.Table(values=[], headings=['item_name', 'price', 'expiration_date'],
+        [sg.Table(values=[], headings=['Name', 'Price', 'Expiration date'],
                   display_row_numbers=True, justification='right', key='item-slot-data')]
     ]
      
@@ -89,11 +89,19 @@ def create_set_restock_instructions_window(vending_machine, restock_list, manage
 
     return sg.Window('Set Restock Instructions', layout_set_restock_instructions, finalize=False)
 
-def create_view_status_window(status):
+def create_view_status_window(vending_machine):
     sg.theme('LightGreen')
 
     layout_status = [
-        [sg.T('Status of vending machine: {status}'.format(status=status))],
+        [sg.T('Status of vending machine: {status}'.format(status=vending_machine.get_status()))],
+        [sg.Table(
+            values=vending_machine.get_errors(),
+                  headings=['Error'], # need to add expiration date
+                  auto_size_columns=True,
+                  display_row_numbers=True,
+                  justification='right',
+                  # new window or table to show items in item slot
+        )],
         [sg.B('Close')],
     ]
 
@@ -149,12 +157,12 @@ def run_management(vending_machine : Vending_Machine, restock_machine : Restock,
             previous_window, active_window = 'Manage', 'View Inventory'
         if event == 'View Status':
             windows['Manage'].hide()
-            windows['View Status'] = create_view_status_window(vending_machine.get_status())
+            windows['View Status'] = create_view_status_window(vending_machine)
             previous_window, active_window = 'Manage', 'View Status'
         for slot in vending_machine.item_inventory_list:
             if event == f'show-items-{slot.get_item_slot_num()}':
                 # Populate the table with the items from the slot
-                item_data = [[item.get_name(), item.get_price(), item.get_expiration_date()] for item in slot.list]
+                item_data = [[item.get_name(), '${:.2f}'.format(item.get_price()), item.get_expiration_date()] for item in slot.list]
                 windows['View Inventory']['item-slot-data'].update(values=item_data)
             
     windows['Manage'].close()
